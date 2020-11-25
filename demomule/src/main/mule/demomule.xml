@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cde97621-44ff-40ba-a9f6-e35816b32f5d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="demomuleFlow" doc:id="c56839e5-22bd-45f0-b179-453945fffa40" >
+		<http:listener doc:name="Listener" doc:id="c63f99a2-3790-4b61-8655-c1540fbf2971" config-ref="HTTP_Listener_config" path="/getdata" allowedMethods="POST"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="99769e63-6eb5-46e4-b726-85ade1d0df17" >
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="501ef79e-40ac-46eb-87ce-0c713b89b042" name="demomuleFlow1"/>
+			</route>
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="5a3ab04d-4da2-434d-9048-7fda096eac2a" name="demomuleFlow2"/>
+			</route>
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="96fe6ec4-61b4-4daf-b81e-8e94612cf15d" name="demomuleFlow3"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="5226067e-3748-4ce9-b720-d090b2408659" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="demomuleFlow1" doc:id="25b013a2-85e4-4711-b385-89c46ba91eaa" >
+		<ee:transform doc:name="Transform Message" doc:id="ebaec05b-6357-4526-ad3a-3be26dd5bb02" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"sum": payload.numOne+payload.numTwo
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="demomuleFlow2" doc:id="75725d32-2367-4fec-903f-016bb7dfced0" >
+		<ee:transform doc:name="Transform Message" doc:id="c201907e-9fe7-4c40-9872-165e49686d74" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"div": payload.numOne/payload.numTwo
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="75cc81c7-b76b-4550-b378-03392cf7be59" >
+				<ee:transform doc:name="Transform Message" doc:id="5ae40582-a8e4-4ff0-ae22-4684f9f77685" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"Divide by zero"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="demomuleFlow3" doc:id="374979b2-8159-4237-b5c8-f67fd57ce8c0" >
+		<ee:transform doc:name="Transform Message" doc:id="ac26df06-8363-4148-956f-297ca7ca9aa4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"min": payload.numOne-payload.numTwo
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
